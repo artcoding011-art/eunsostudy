@@ -143,7 +143,7 @@ export default function ReadingLogDashboard() {
   const [currentImage, setCurrentImage] = useState<{data: string, mimeType: string} | null>(null);
   const [currentPasteSource, setCurrentPasteSource] = useState<'ocr' | 'manual' | null>(null);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
-  const [cumulativeStats, setCumulativeStats] = useState({ korean: 0, english: 0, total: 0 });
+  const [cumulativeStats, setCumulativeStats] = useState({ korean: 0, english: 0, ort: 0, total: 0 });
   const [showSaveModal, setShowSaveModal] = useState(false);
   const captureRef = useRef<HTMLDivElement>(null);
 
@@ -171,12 +171,20 @@ export default function ReadingLogDashboard() {
         const resp = await fetch(`/api/logs?year=${year}&month=${month}&week=${selectedWeek}`);
         if (resp.ok) {
           const data = await resp.json();
+          const baseLogs = generateLogsForWeek(year, month, selectedWeek);
+          
           if (data.logs && data.logs.length > 0) {
-            setLogs(data.logs);
-            setWeekTheme(data.theme || "");
-            setIsLoading(false);
-            return;
+            const mergedLogs = baseLogs.map(baseLog => {
+              const dbLog = data.logs.find((l: LogEntry) => l.date === baseLog.date);
+              return dbLog ? { ...baseLog, ...dbLog, id: baseLog.id } : baseLog;
+            });
+            setLogs(mergedLogs);
+          } else {
+            setLogs(baseLogs);
           }
+          setWeekTheme(data.theme || "");
+          setIsLoading(false);
+          return;
         }
       } catch (e) {
         console.error("Failed to load data from DB", e);
@@ -540,6 +548,8 @@ export default function ReadingLogDashboard() {
               <span className={styles.cItem}>한글 <span className={styles.cValue}>{cumulativeStats.korean}</span>권</span>
               <span className={styles.cDivider}>|</span>
               <span className={styles.cItem}>영어 <span className={styles.cValue}>{cumulativeStats.english}</span>권</span>
+              <span className={styles.cDivider}>|</span>
+              <span className={styles.cItem}>ORT <span className={styles.cValue}>{cumulativeStats.ort}</span>권</span>
               <span className={styles.cDivider}>|</span>
               <span className={styles.cItemTotal}>총합 <span className={styles.cValueTotal}>{cumulativeStats.total}</span>권</span>
             </div>
