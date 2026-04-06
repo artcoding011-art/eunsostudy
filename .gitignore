@@ -1,0 +1,33 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.*
+.yarn/*
+
+# testing
+coverage/
+
+# next.js
+.next/
+out/
+
+# production
+build/
+
+# misc
+.DS_Store
+*.pem
+.env*
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# project specific
+reading-log/node_modules/
+reading-log/.next/
+reading-log/.env*
+reading-log/.vercel
+reading-log/next-env.d.ts
+reading-log/*.tsbuildinfo
