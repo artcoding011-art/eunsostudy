@@ -48,6 +48,19 @@ const formatMinutesToTime = (totalMinutes: number): string => {
   return `${mins}분`;
 };
 
+function getMondayDate(year: number, month: number, week: number): string {
+  const firstDay = new Date(year, month - 1, 1);
+  const dayOfWeek = firstDay.getDay();
+  const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  const firstMonday = new Date(year, month - 1, 1 + diffToMonday);
+  const monday = new Date(firstMonday.getTime() + (week - 1) * 7 * 24 * 60 * 60 * 1000);
+  
+  const y = monday.getFullYear();
+  const m = String(monday.getMonth() + 1).padStart(2, '0');
+  const d = String(monday.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
 function getDatesOfWeek(year: number, month: number, week: number) {
   const firstDay = new Date(year, month - 1, 1);
   const dayOfWeek = firstDay.getDay(); 
@@ -168,7 +181,8 @@ export default function ReadingLogDashboard() {
 
       // 2. Load current week data from DB
       try {
-        const resp = await fetch(`/api/logs?year=${year}&month=${month}&week=${selectedWeek}`);
+        const weekId = getMondayDate(year, month, selectedWeek);
+        const resp = await fetch(`/api/logs?year=${year}&month=${month}&week=${selectedWeek}&weekId=${weekId}`);
         if (resp.ok) {
           const data = await resp.json();
           const baseLogs = generateLogsForWeek(year, month, selectedWeek);
@@ -200,10 +214,12 @@ export default function ReadingLogDashboard() {
   }, [year, month, selectedWeek]);
 
   const saveToDatabase = async () => {
+    const weekId = getMondayDate(year, month, selectedWeek);
     const data = { 
       year, 
       month, 
       week: selectedWeek, 
+      weekId,
       logs, 
       theme: weekTheme 
     };
